@@ -1,0 +1,3 @@
+rootProject.name='EasyLite'
+include ':app'
+include ':EasyLite-core'
