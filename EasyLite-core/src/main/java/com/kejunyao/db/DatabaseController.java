@@ -59,7 +59,7 @@ public class DatabaseController {
     }
 
     public DatabaseController addDatabaseUpdateListener(int currVersion, OnDatabaseUpdateListener l) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             if (mListeners == null) {
                 mListeners = new SparseArray<>();
             } else {
@@ -169,7 +169,7 @@ public class DatabaseController {
     }
 
     public DatabaseController addDao(Class<? extends AbstractDao> daoClazz) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             try {
                 AbstractDao dao = daoClazz.newInstance();
                 addDao(dao);
@@ -184,7 +184,7 @@ public class DatabaseController {
     }
 
     public DatabaseController addDao(AbstractDao dao) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             addDaoController(dao);
         }
         return this;
@@ -200,7 +200,7 @@ public class DatabaseController {
     }
 
     public <T> void createTable(Class<T> clazz, SQLiteDatabase db) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             DaoController controller = findDaoController(clazz);
             if (controller == null) {
                 if (Utils.isDebug()) {
@@ -227,7 +227,7 @@ public class DatabaseController {
      * 表创建操作
      */
     public void createAllTables(SQLiteDatabase db) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             Collection<DaoController> cs = mControllers.values();
             for (DaoController c : cs) {
                 Dao dao = c.getDao();
@@ -264,7 +264,7 @@ public class DatabaseController {
         if (Utils.isDebug()) {
             Utils.log(this, "DB new version = ", newVersion, ", DB old version = ", oldVersion);
         }
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             db.beginTransaction();
             int version = oldVersion + 1;
             try {
@@ -288,7 +288,7 @@ public class DatabaseController {
      * 数据库降级
      */
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             dropAllTables(db);
             createAllTables(db);
         }
@@ -663,7 +663,7 @@ public class DatabaseController {
      * @return true，成功；false，失败
      */
     public boolean exeTransaction(Action action) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             DaoController controller = null;
             for (DaoController daoController : mControllers.values()) {
                 controller = daoController;
@@ -734,7 +734,7 @@ public class DatabaseController {
     }
 
     public boolean update(Class clazz, String[] primaryKeys, ContentValues values) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             DaoController controller = findDaoController(clazz);
             if (controller == null) {
                 if (Utils.isDebug()) {
@@ -1114,7 +1114,7 @@ public class DatabaseController {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                synchronized (Lock.GLOBAL_LOCK) {
+                synchronized (this) {
                     if (Utils.isDebug()) {
                         Utils.log(DatabaseController.this, "开始数据库完整性检查................................");
                     }
@@ -1149,7 +1149,7 @@ public class DatabaseController {
 
     @SuppressWarnings("unchecked")
     public <T> T execute(final Class clazz, String methodName, Class<?>[] parameterTypes, Object[] args) {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (this) {
             DaoController controller = findDaoController(clazz);
             if (controller == null) {
                 return null;
@@ -1179,7 +1179,7 @@ public class DatabaseController {
             @Override
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                synchronized (Lock.GLOBAL_LOCK) {
+                synchronized (this) {
                     r.run();
                 }
             }
@@ -1191,7 +1191,7 @@ public class DatabaseController {
             @Override
             public void run() {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                synchronized (Lock.GLOBAL_LOCK) {
+                synchronized (this) {
                     T entity = callback.onProcess();
                     doCallback(callback, entity);
                 }

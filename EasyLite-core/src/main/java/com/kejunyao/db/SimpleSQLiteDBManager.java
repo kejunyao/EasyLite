@@ -10,7 +10,7 @@ import android.content.Context;
  */
 public class SimpleSQLiteDBManager extends DatabaseController {
 
-    private static SimpleSQLiteDBManager sInstance;
+    private static volatile SimpleSQLiteDBManager sInstance;
 
     private SimpleSQLiteDBManager(Context context, String name, int version) {
         super(Utils.newSingleFixedThreadPool(), new SimpleSQLiteOpenHelper(context, name, version));
@@ -18,7 +18,7 @@ public class SimpleSQLiteDBManager extends DatabaseController {
 
     public static SimpleSQLiteDBManager init(Context context, String name, int version) {
         if (sInstance == null) {
-            synchronized (Lock.GLOBAL_LOCK) {
+            synchronized (SimpleSQLiteDBManager.class) {
                 if (sInstance == null) {
                     sInstance = new SimpleSQLiteDBManager(context, name, version);
                 }
@@ -28,7 +28,7 @@ public class SimpleSQLiteDBManager extends DatabaseController {
     }
 
     public static SimpleSQLiteDBManager getInstance() {
-        synchronized (Lock.GLOBAL_LOCK) {
+        synchronized (SimpleSQLiteDBManager.class) {
             Assert.notNull(sInstance, "Please call init method first!");
             return sInstance;
         }
